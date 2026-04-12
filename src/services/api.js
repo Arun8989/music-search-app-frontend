@@ -5,6 +5,15 @@ const api = axios.create({
     import.meta.env.VITE_API_BASE_URL || 'https://music-search-app-backend.onrender.com/api',
 })
 
+export const setAuthToken = (token) => {
+  if (token) {
+    api.defaults.headers.common.Authorization = `Bearer ${token}`
+    return
+  }
+
+  delete api.defaults.headers.common.Authorization
+}
+
 export const getDashboardData = async (searchTerm = '') => {
   const [tracks, recommended, playlists, genres] = await Promise.all([
     api.get('/tracks', { params: { search: searchTerm } }),
@@ -28,6 +37,21 @@ export const toggleTrackLike = async (trackId) => {
 
 export const addTrackComment = async (trackId, payload) => {
   const response = await api.post(`/tracks/${trackId}/comments`, payload)
+  return response.data.data
+}
+
+export const registerUser = async (payload) => {
+  const response = await api.post('/auth/register', payload)
+  return response.data.data
+}
+
+export const loginUser = async (payload) => {
+  const response = await api.post('/auth/login', payload)
+  return response.data.data
+}
+
+export const getCurrentUser = async () => {
+  const response = await api.get('/auth/me')
   return response.data.data
 }
 

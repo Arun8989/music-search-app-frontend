@@ -14,6 +14,7 @@ https://music-search-app-backend.onrender.com/api
 - Search by song, artist, album, movie, genre, or mood
 - Genre and mood discovery filters
 - Playlist creation and song management
+- Register and login flow for protected actions
 - Track likes and comments
 - Sticky audio player with play, pause, previous, next, repeat, shuffle, seek, and volume control
 - Download links for offline listening
@@ -53,6 +54,13 @@ For local backend testing, use:
 
 ```env
 VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+## Demo Account
+
+```text
+Email: demo@musicapp.com
+Password: demo1234
 ```
 
 ## Build

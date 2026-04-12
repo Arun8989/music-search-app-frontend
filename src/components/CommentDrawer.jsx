@@ -1,6 +1,14 @@
-import { SendHorizonal, X } from 'lucide-react'
+import { LockKeyhole, SendHorizonal, X } from 'lucide-react'
 
-function CommentDrawer({ track, draftComment, onDraftChange, onSubmit, onClose }) {
+function CommentDrawer({
+  track,
+  draftComment,
+  isAuthenticated,
+  onDraftChange,
+  onSubmit,
+  onClose,
+  onRequireAuth,
+}) {
   if (!track) return null
 
   return (
@@ -40,16 +48,27 @@ function CommentDrawer({ track, draftComment, onDraftChange, onSubmit, onClose }
           <textarea
             value={draftComment}
             onChange={(event) => onDraftChange(event.target.value)}
-            placeholder="Add your thoughts on this track..."
+            placeholder={isAuthenticated ? 'Add your thoughts on this track...' : 'Sign in to add a comment'}
             rows={3}
+            disabled={!isAuthenticated}
             className="flex-1 rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-orange-400"
           />
-          <button
-            type="submit"
-            className="self-end rounded-2xl bg-orange-400 p-3 text-slate-950 transition hover:bg-orange-300"
-          >
-            <SendHorizonal className="h-5 w-5" />
-          </button>
+          {isAuthenticated ? (
+            <button
+              type="submit"
+              className="self-end rounded-2xl bg-orange-400 p-3 text-slate-950 transition hover:bg-orange-300"
+            >
+              <SendHorizonal className="h-5 w-5" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onRequireAuth}
+              className="self-end rounded-2xl border border-white/10 bg-white/5 p-3 text-slate-100 transition hover:bg-white/10"
+            >
+              <LockKeyhole className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </form>
     </aside>

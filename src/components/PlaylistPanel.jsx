@@ -4,12 +4,14 @@ function PlaylistPanel({
   playlists,
   tracks,
   draftName,
+  isAuthenticated,
   onDraftNameChange,
   onCreatePlaylist,
   onToggleLike,
   onRemoveTrack,
   highlightedTrack,
   onAddHighlightedTrack,
+  onRequireAuth,
 }) {
   return (
     <div className="space-y-6 rounded-[28px] border border-white/10 bg-slate-950/45 p-6 backdrop-blur">
@@ -22,12 +24,13 @@ function PlaylistPanel({
           <input
             value={draftName}
             onChange={(event) => onDraftNameChange(event.target.value)}
-            placeholder="Create a new playlist"
-            className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-orange-400"
+            placeholder={isAuthenticated ? 'Create a new playlist' : 'Sign in to create playlists'}
+            disabled={!isAuthenticated}
+            className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
           />
           <button
             type="button"
-            onClick={onCreatePlaylist}
+            onClick={isAuthenticated ? onCreatePlaylist : onRequireAuth}
             className="inline-flex items-center gap-2 rounded-2xl bg-orange-400 px-4 py-3 text-sm font-medium text-slate-950 transition hover:bg-orange-300"
           >
             <Plus className="h-4 w-4" />
@@ -37,7 +40,7 @@ function PlaylistPanel({
         {highlightedTrack ? (
           <button
             type="button"
-            onClick={onAddHighlightedTrack}
+            onClick={isAuthenticated ? onAddHighlightedTrack : onRequireAuth}
             className="inline-flex items-center gap-2 rounded-full border border-green-300/30 bg-green-400/10 px-4 py-2 text-sm text-green-100 transition hover:bg-green-400/20"
           >
             <ListMusic className="h-4 w-4" />
@@ -56,7 +59,7 @@ function PlaylistPanel({
               </div>
               <button
                 type="button"
-                onClick={() => onToggleLike(playlist._id)}
+                onClick={isAuthenticated ? () => onToggleLike(playlist._id) : onRequireAuth}
                 className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-200"
               >
                 <Heart className={`h-4 w-4 ${playlist.liked ? 'fill-current text-rose-400' : ''}`} />
@@ -81,7 +84,7 @@ function PlaylistPanel({
                       </div>
                       <button
                         type="button"
-                        onClick={() => onRemoveTrack(playlist._id, trackId)}
+                        onClick={isAuthenticated ? () => onRemoveTrack(playlist._id, trackId) : onRequireAuth}
                         className="rounded-full border border-white/10 p-2 text-slate-300 transition hover:border-rose-300/40 hover:text-rose-200"
                       >
                         <Trash2 className="h-4 w-4" />

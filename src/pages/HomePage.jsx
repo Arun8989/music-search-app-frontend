@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Disc3, Radio, Waves } from 'lucide-react'
+import AccountBar from '../components/AccountBar'
+import AuthModal from '../components/AuthModal'
 import CommentDrawer from '../components/CommentDrawer'
 import HeroSection from '../components/HeroSection'
 import MoodFilter from '../components/MoodFilter'
@@ -11,12 +13,18 @@ import {
   addTrackComment,
   addTrackToPlaylist,
   createPlaylist,
+  getCurrentUser,
   getDashboardData,
+  loginUser,
   removeTrackFromPlaylist,
+  registerUser,
+  setAuthToken,
   togglePlaylistLike,
   toggleTrackLike,
 } from '../services/api'
 import { formatLargeNumber } from '../utils/formatters'
+
+const AUTH_STORAGE_KEY = 'music_app_token'
 
 const defaultStats = [
   { icon: Disc3, label: 'Curated Tracks', value: '0' },
@@ -45,6 +53,32 @@ function HomePage() {
   const [selectedTrack, setSelectedTrack] = useState(null)
   const [commentDraft, setCommentDraft] = useState('')
   const [highlightedTrack, setHighlightedTrack] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null)
+  const [authMode, setAuthMode] = useState('login')
+  const [isAuthOpen, setIsAuthOpen] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const [authSubmitting, setAuthSubmitting] = useState(false)
+  const [statusMessage, setStatusMessage] = useState('')
+  const [authForm, setAuthForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+  })
+
+  useEffect(() => {
+    const token = window.localStorage.getItem(AUTH_STORAGE_KEY)
+    if (!token) return
+
+    setAuthToken(token)
+    getCurrentUser()
+      .then((user) => {
+        setCurrentUser(user)
+      })
+      .catch(() => {
+        setAuthToken(null)
+        window.localStorage.removeItem(AUTH_STORAGE_KEY)
+      })
+  }, [])
 
   useEffect(() => {
     const loadData = async () => {
@@ -219,6 +253,13 @@ function HomePage() {
   }
 
   const handleTrackLike = async (trackId) => {
+    if (!currentUser) {
+      setStatusMessage('Sign in to like tracks and playlists.')
+      setAuthMode('login')
+      setIsAuthOpen(true)
+      return
+    }
+
     const updatedTrack = await toggleTrackLike(trackId)
     syncTrackAcrossState(updatedTrack)
   }
@@ -226,9 +267,14 @@ function HomePage() {
   const handleSubmitComment = async (event) => {
     event.preventDefault()
     if (!selectedTrack || !commentDraft.trim()) return
+    if (!currentUser) {
+      setStatusMessage('Sign in to comment on tracks.')
+      setAuthMode('login')
+      setIsAuthOpen(true)
+      return
+    }
 
     const updatedTrack = await addTrackComment(selectedTrack._id, {
-      user: 'You',
       content: commentDraft.trim(),
     })
     setCommentDraft('')
@@ -237,6 +283,13 @@ function HomePage() {
 
   const handleCreatePlaylist = async () => {
     if (!playlistDraft.trim()) return
+    if (!currentUser) {
+      setStatusMessage('Sign in to create playlists.')
+      setAuthMode('login')
+      setIsAuthOpen(true)
+      return
+    }
+
     const newPlaylist = await createPlaylist({ name: playlistDraft.trim() })
     setPlaylists((prev) => [newPlaylist, ...prev])
     setPlaylistDraft('')
@@ -244,6 +297,13 @@ function HomePage() {
 
   const handleAddTrackToPlaylist = async (track) => {
     if (!track) return
+    if (!currentUser) {
+      setStatusMessage('Sign in to add tracks to a playlist.')
+      setAuthMode('login')
+      setIsAuthOpen(true)
+      return
+    }
+
     setHighlightedTrack(track)
     if (!playlists.length) return
 
@@ -254,6 +314,13 @@ function HomePage() {
   }
 
   const handleRemoveTrackFromPlaylist = async (playlistId, trackId) => {
+    if (!currentUser) {
+      setStatusMessage('Sign in to edit playlists.')
+      setAuthMode('login')
+      setIsAuthOpen(true)
+      return
+    }
+
     const updatedPlaylist = await removeTrackFromPlaylist(playlistId, trackId)
     setPlaylists((prev) =>
       prev.map((playlist) => (playlist._id === updatedPlaylist._id ? updatedPlaylist : playlist)),
@@ -261,15 +328,73 @@ function HomePage() {
   }
 
   const handleTogglePlaylistLike = async (playlistId) => {
+    if (!currentUser) {
+      setStatusMessage('Sign in to like playlists.')
+      setAuthMode('login')
+      setIsAuthOpen(true)
+      return
+    }
+
     const updatedPlaylist = await togglePlaylistLike(playlistId)
     setPlaylists((prev) =>
       prev.map((playlist) => (playlist._id === updatedPlaylist._id ? updatedPlaylist : playlist)),
     )
   }
 
+  const handleAuthFormChange = (field, value) => {
+    setAuthForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleOpenAuth = (mode = 'login') => {
+    setAuthMode(mode)
+    setAuthError('')
+    setIsAuthOpen(true)
+  }
+
+  const handleAuthSubmit = async (event) => {
+    event.preventDefault()
+    setAuthSubmitting(true)
+    setAuthError('')
+
+    try {
+      const result =
+        authMode === 'register'
+          ? await registerUser(authForm)
+          : await loginUser({
+              email: authForm.email,
+              password: authForm.password,
+            })
+
+      window.localStorage.setItem(AUTH_STORAGE_KEY, result.token)
+      setAuthToken(result.token)
+      setCurrentUser(result.user)
+      setStatusMessage(`Signed in as ${result.user.name}. Protected actions are now unlocked.`)
+      setIsAuthOpen(false)
+      setAuthForm({ name: '', email: '', password: '' })
+    } catch (error) {
+      setAuthError(error.response?.data?.message || 'Authentication failed. Please try again.')
+    } finally {
+      setAuthSubmitting(false)
+    }
+  }
+
+  const handleLogout = () => {
+    window.localStorage.removeItem(AUTH_STORAGE_KEY)
+    setAuthToken(null)
+    setCurrentUser(null)
+    setStatusMessage('You have been signed out.')
+  }
+
   return (
     <main className="relative px-4 pb-8 pt-6 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-7xl space-y-8">
+        <AccountBar
+          currentUser={currentUser}
+          statusMessage={statusMessage}
+          onOpenAuth={() => handleOpenAuth('login')}
+          onLogout={handleLogout}
+        />
+
         <HeroSection
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
@@ -337,12 +462,14 @@ function HomePage() {
             playlists={playlists}
             tracks={mergedTracks}
             draftName={playlistDraft}
+            isAuthenticated={Boolean(currentUser)}
             onDraftNameChange={setPlaylistDraft}
             onCreatePlaylist={handleCreatePlaylist}
             onToggleLike={handleTogglePlaylistLike}
             onRemoveTrack={handleRemoveTrackFromPlaylist}
             highlightedTrack={highlightedTrack}
             onAddHighlightedTrack={() => handleAddTrackToPlaylist(highlightedTrack)}
+            onRequireAuth={() => handleOpenAuth('login')}
           />
         </section>
 
@@ -369,9 +496,23 @@ function HomePage() {
       <CommentDrawer
         track={selectedTrack}
         draftComment={commentDraft}
+        isAuthenticated={Boolean(currentUser)}
         onDraftChange={setCommentDraft}
         onSubmit={handleSubmitComment}
         onClose={() => setSelectedTrack(null)}
+        onRequireAuth={() => handleOpenAuth('login')}
+      />
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        mode={authMode}
+        form={authForm}
+        error={authError}
+        isSubmitting={authSubmitting}
+        onModeChange={setAuthMode}
+        onFormChange={handleAuthFormChange}
+        onSubmit={handleAuthSubmit}
+        onClose={() => setIsAuthOpen(false)}
       />
     </main>
   )
