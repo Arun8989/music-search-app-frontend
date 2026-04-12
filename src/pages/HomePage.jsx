@@ -125,7 +125,9 @@ function HomePage() {
   }, [currentTrack, repeat, shuffle, tracks, recommended])
 
   const visibleTracks = useMemo(() => {
-    const collection = searchTerm ? tracks : recommended
+    const hasActiveFilter = activeGenre !== 'All' || activeMood !== 'All'
+    const collection = searchTerm || hasActiveFilter ? tracks : recommended
+
     return collection.filter((track) => {
       const genreMatches = activeGenre === 'All' || track.genre === activeGenre
       const moodMatches = activeMood === 'All' || track.mood === activeMood
@@ -295,7 +297,7 @@ function HomePage() {
           <div className="space-y-6">
             <SectionHeader
               eyebrow="Fresh rotation"
-              title={searchTerm ? 'Search Results' : 'Recommended Tracks'}
+              title={searchTerm || activeGenre !== 'All' || activeMood !== 'All' ? 'Filtered Tracks' : 'Recommended Tracks'}
               description="Browse high-energy anthems, soft-focus instrumentals, and soundtrack picks with fast actions for likes, comments, downloads, and playlists."
             />
 
@@ -310,17 +312,23 @@ function HomePage() {
               </div>
             ) : (
               <div className="grid gap-5 md:grid-cols-2">
-                {visibleTracks.map((track) => (
-                  <TrackCard
-                    key={track._id}
-                    track={track}
-                    isCurrent={currentTrack?._id === track._id}
-                    onPlay={handlePlayTrack}
-                    onLike={handleTrackLike}
-                    onQueueToPlaylist={handleAddTrackToPlaylist}
-                    onOpenComments={setSelectedTrack}
-                  />
-                ))}
+                {visibleTracks.length ? (
+                  visibleTracks.map((track) => (
+                    <TrackCard
+                      key={track._id}
+                      track={track}
+                      isCurrent={currentTrack?._id === track._id}
+                      onPlay={handlePlayTrack}
+                      onLike={handleTrackLike}
+                      onQueueToPlaylist={handleAddTrackToPlaylist}
+                      onOpenComments={setSelectedTrack}
+                    />
+                  ))
+                ) : (
+                  <div className="rounded-[28px] border border-dashed border-white/10 bg-white/5 p-8 text-sm text-slate-400 md:col-span-2">
+                    No tracks matched this filter. Try another mood, genre, or search keyword.
+                  </div>
+                )}
               </div>
             )}
           </div>
