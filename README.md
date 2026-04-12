@@ -1,16 +1,76 @@
-# React + Vite
+# Music Search App Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React frontend for a MERN-style music streaming application. The UI lets users browse recommended songs, search music, filter by genre and mood, manage playlists, play audio previews, like tracks, comment on songs, download tracks, and share music.
 
-Currently, two official plugins are available:
+## Live Backend
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```text
+https://music-search-app-backend.onrender.com/api
+```
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Recommended music feed
+- Search by song, artist, album, movie, genre, or mood
+- Genre and mood discovery filters
+- Playlist creation and song management
+- Track likes and comments
+- Sticky audio player with play, pause, previous, next, repeat, shuffle, seek, and volume control
+- Download links for offline listening
+- Social sharing links
+- Responsive Tailwind CSS interface
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React
+- Vite
+- Tailwind CSS
+- Axios
+- Lucide React icons
+
+## Local Setup
+
+```bash
+npm install
+npm run dev
+```
+
+The app runs at:
+
+```text
+http://localhost:5173
+```
+
+## Environment Variables
+
+Create a `.env` file:
+
+```env
+VITE_API_BASE_URL=https://music-search-app-backend.onrender.com/api
+```
+
+For local backend testing, use:
+
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+## Build
+
+```bash
+npm run build
+```
+
+## Netlify Deployment
+
+Use these settings:
+
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Environment variable: `VITE_API_BASE_URL=https://music-search-app-backend.onrender.com/api`
+
+## Backend Repository
+
+```text
+https://github.com/Arun8989/music-search-app-backend
+```

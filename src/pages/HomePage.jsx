@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Disc3, Radio, Waves } from 'lucide-react'
 import CommentDrawer from '../components/CommentDrawer'
 import HeroSection from '../components/HeroSection'
+import MoodFilter from '../components/MoodFilter'
 import PlayerBar from '../components/PlayerBar'
 import PlaylistPanel from '../components/PlaylistPanel'
 import SectionHeader from '../components/SectionHeader'
@@ -32,6 +33,7 @@ function HomePage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [activeGenre, setActiveGenre] = useState('All')
+  const [activeMood, setActiveMood] = useState('All')
   const [currentTrack, setCurrentTrack] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [shuffle, setShuffle] = useState(false)
@@ -124,9 +126,13 @@ function HomePage() {
 
   const visibleTracks = useMemo(() => {
     const collection = searchTerm ? tracks : recommended
-    if (activeGenre === 'All') return collection
-    return collection.filter((track) => track.genre === activeGenre)
-  }, [activeGenre, recommended, searchTerm, tracks])
+    return collection.filter((track) => {
+      const genreMatches = activeGenre === 'All' || track.genre === activeGenre
+      const moodMatches = activeMood === 'All' || track.mood === activeMood
+
+      return genreMatches && moodMatches
+    })
+  }, [activeGenre, activeMood, recommended, searchTerm, tracks])
 
   const mergedTracks = useMemo(() => {
     const map = new Map()
@@ -135,6 +141,11 @@ function HomePage() {
     })
     return Array.from(map.values())
   }, [tracks, recommended])
+
+  const moods = useMemo(() => {
+    const moodSet = new Set(mergedTracks.map((track) => track.mood).filter(Boolean))
+    return Array.from(moodSet)
+  }, [mergedTracks])
 
   const stats = useMemo(() => {
     if (!mergedTracks.length) return defaultStats
@@ -277,6 +288,8 @@ function HomePage() {
             </article>
           ))}
         </section>
+
+        <MoodFilter moods={moods} activeMood={activeMood} onMoodChange={setActiveMood} />
 
         <section className="grid gap-8 xl:grid-cols-[1.4fr_0.8fr]">
           <div className="space-y-6">

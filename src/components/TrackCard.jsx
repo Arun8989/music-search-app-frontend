@@ -36,13 +36,18 @@ function TrackCard({
         <div className="absolute left-4 top-4 rounded-full bg-slate-950/65 px-3 py-1 text-xs tracking-[0.3em] text-slate-200 backdrop-blur">
           {track.genre}
         </div>
+        {track.mood ? (
+          <div className="absolute bottom-4 left-4 rounded-full border border-green-200/30 bg-green-300/15 px-3 py-1 text-xs tracking-[0.24em] text-green-100 backdrop-blur">
+            {track.mood}
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-4 p-5">
         <div>
           <h3 className="text-xl font-semibold text-white">{track.title}</h3>
           <p className="mt-1 text-sm text-slate-400">
-            {track.artist} • {track.album} • {track.movie}
+            {track.artist} / {track.album} / {track.movie}
           </p>
         </div>
 
