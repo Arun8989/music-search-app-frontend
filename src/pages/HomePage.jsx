@@ -99,7 +99,7 @@ function HomePage() {
 
     const timeoutId = window.setTimeout(loadData, 250)
     return () => window.clearTimeout(timeoutId)
-  }, [searchTerm])
+  }, [searchTerm, currentUser?._id])
 
   useEffect(() => {
     if (!audioRef.current || !currentTrack) return
